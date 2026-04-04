@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>EvoLife – Adaptive Human Development &amp; Discipline Tracking System</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Rajdhani:wght@300;400;500;600;700&family=Noto+Sans+Devanagari:wght@300;400;700&display=swap" rel="stylesheet"/>
+<style>
+:root{--navy:#0A0A1F;--navy2:#0D0D2B;--teal:#00E5C0;--teal2:#00C4A4;--amber:#FF9F1C;--amber2:#FFB347;--emerald:#00E87A;--gold:#FFD700;--glass:rgba(255,255,255,0.04);--glass2:rgba(0,229,192,0.08);--border:rgba(0,229,192,0.18);--text:#E0F7F4;--muted:rgba(224,247,244,0.5)}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--navy);color:var(--text);font-family:'Rajdhani',sans-serif;font-size:16px;min-height:100vh;overflow-x:hidden}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:var(--navy)}::-webkit-scrollbar-thumb{background:var(--teal2);border-radius:3px}
+#cosmos-bg{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.star{position:absolute;border-radius:50%;background:white;animation:twinkle var(--dur,3s) ease-in-out infinite;opacity:0}
+@keyframes twinkle{0%,100%{opacity:0;transform:scale(1)}50%{opacity:var(--op,0.8);transform:scale(1.3)}}
+.cosmic-symbol{position:absolute;font-family:'Noto Sans Devanagari',serif;font-size:clamp(20px,3vw,48px);color:var(--teal);opacity:0;animation:floatSymbol 12s ease-in-out infinite;pointer-events:none;user-select:none}
+@keyframes floatSymbol{0%{opacity:0;transform:translateY(20px) rotate(-10deg)}20%{opacity:0.06}80%{opacity:0.06}100%{opacity:0;transform:translateY(-40px) rotate(10deg)}}
+.glass-card{background:var(--glass);border:1px solid var(--border);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-radius:16px;transition:transform 0.3s ease,box-shadow 0.3s ease,border-color 0.3s ease}
+.glass-card:hover{transform:translateY(-3px);box-shadow:0 12px 40px rgba(0,229,192,0.12);border-color:rgba(0,229,192,0.35)}
+#auth-screen{position:fixed;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at 30% 50%,#0D1B3E 0%,#0A0A1F 60%)}
+.auth-card{width:min(420px,92vw);background:rgba(13,13,43,0.85);border:1px solid var(--border);border-radius:24px;padding:40px 36px;backdrop-filter:blur(20px);box-shadow:0 0 80px rgba(0,229,192,0.12),0 0 200px rgba(0,229,192,0.04);animation:authEntrance 0.8s cubic-bezier(0.16,1,0.3,1) both}
+@keyframes authEntrance{from{opacity:0;transform:translateY(30px) scale(0.96)}to{opacity:1;transform:translateY(0) scale(1)}}
+.evo-orb{border-radius:50%;background:radial-gradient(circle at 35% 35%,#00FFD1,#00B89C 50%,#006B58 100%);box-shadow:0 0 30px rgba(0,229,192,0.6),0 0 60px rgba(0,229,192,0.3),0 0 100px rgba(0,229,192,0.15),inset 0 0 30px rgba(255,255,255,0.1);animation:orbPulse 3s ease-in-out infinite;transition:all 1.2s cubic-bezier(0.34,1.56,0.64,1);position:relative;cursor:pointer}
+@keyframes orbPulse{0%,100%{box-shadow:0 0 30px rgba(0,229,192,0.6),0 0 60px rgba(0,229,192,0.3),0 0 100px rgba(0,229,192,0.15),inset 0 0 30px rgba(255,255,255,0.1)}50%{box-shadow:0 0 50px rgba(0,229,192,0.9),0 0 100px rgba(0,229,192,0.5),0 0 150px rgba(0,229,192,0.2),inset 0 0 40px rgba(255,255,255,0.15)}}
+.orb-karma-burst{animation:orbBurst 0.6s cubic-bezier(0.34,1.56,0.64,1) both}
+@keyframes orbBurst{0%{transform:scale(1)}50%{transform:scale(1.18)}100%{transform:scale(1)}}
+.karma-ring{position:absolute;border-radius:50%;border:2px solid transparent;animation:spinRing linear infinite}
+@keyframes spinRing{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+.vine-container{position:absolute;inset:-40px;pointer-events:none}
+.vine{position:absolute;width:3px;background:linear-gradient(to top,var(--emerald),transparent);transform-origin:bottom center;animation:vineGrow 2s ease-out both;border-radius:2px}
+@keyframes vineGrow{from{transform:scaleY(0) rotate(var(--angle,0deg));opacity:0}to{transform:scaleY(1) rotate(var(--angle,0deg));opacity:0.7}}
+.leaf{position:absolute;width:8px;height:12px;background:var(--emerald);border-radius:50% 0 50% 0;animation:leafAppear 0.5s ease-out both}
+@keyframes leafAppear{from{opacity:0;transform:scale(0)}to{opacity:0.8;transform:scale(1)}}
+#sidebar{position:fixed;left:0;top:0;bottom:0;width:240px;z-index:50;background:linear-gradient(180deg,rgba(13,13,43,0.98) 0%,rgba(10,10,31,0.98) 100%);border-right:1px solid var(--border);backdrop-filter:blur(20px);display:flex;flex-direction:column;transition:transform 0.35s cubic-bezier(0.4,0,0.2,1)}
+.sidebar-logo{font-family:'Cinzel',serif;font-size:1.3rem;letter-spacing:0.1em;background:linear-gradient(135deg,var(--teal),var(--emerald));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.nav-item{display:flex;align-items:center;gap:12px;padding:11px 20px;border-radius:10px;margin:2px 8px;cursor:pointer;transition:all 0.25s ease;font-size:0.95rem;font-weight:500;letter-spacing:0.03em;color:var(--muted);border:1px solid transparent;position:relative;overflow:hidden}
+.nav-item::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--teal);transform:scaleY(0);transition:transform 0.25s ease;border-radius:0 2px 2px 0}
+.nav-item:hover{color:var(--text);background:var(--glass2);border-color:var(--border)}
+.nav-item:hover::before{transform:scaleY(1)}
+.nav-item.active{color:var(--teal);background:rgba(0,229,192,0.1);border-color:rgba(0,229,192,0.25)}
+.nav-item.active::before{transform:scaleY(1)}
+#main-content{margin-left:240px;min-height:100vh;padding:28px 32px 60px;position:relative;z-index:10;transition:margin-left 0.35s ease}
+.page{display:none;animation:pageIn 0.4s cubic-bezier(0.16,1,0.3,1) both}
+.page.active{display:block}
+@keyframes pageIn{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+.btn-primary{background:linear-gradient(135deg,var(--teal),var(--emerald));color:#0A0A1F;font-weight:700;border:none;padding:12px 28px;border-radius:10px;cursor:pointer;font-family:'Rajdhani',sans-serif;font-size:1rem;letter-spacing:0.05em;transition:all 0.25s ease;box-shadow:0 4px 20px rgba(0,229,192,0.3)}
+.btn-primary:hover{transform:translateY(-2px) scale(1.03);box-shadow:0 8px 30px rgba(0,229,192,0.5)}
+.btn-primary:active{transform:scale(0.97)}
+.btn-amber{background:linear-gradient(135deg,var(--amber),var(--amber2));color:#0A0A1F;font-weight:700;border:none;padding:10px 22px;border-radius:10px;cursor:pointer;font-family:'Rajdhani',sans-serif;font-size:0.95rem;letter-spacing:0.04em;transition:all 0.25s ease;box-shadow:0 4px 20px rgba(255,159,28,0.3)}
+.btn-amber:hover{transform:translateY(-2px) scale(1.03);box-shadow:0 8px 30px rgba(255,159,28,0.5)}
+.btn-ghost{background:transparent;color:var(--teal);border:1px solid var(--teal);padding:10px 22px;border-radius:10px;cursor:pointer;font-family:'Rajdhani',sans-serif;font-size:0.95rem;font-weight:600;letter-spacing:0.04em;transition:all 0.25s ease}
+.btn-ghost:hover{background:var(--glass2)}
+.evo-input{width:100%;padding:12px 16px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'Rajdhani',sans-serif;font-size:1rem;outline:none;transition:border-color 0.25s ease,box-shadow 0.25s ease}
+.evo-input:focus{border-color:var(--teal);box-shadow:0 0 0 3px rgba(0,229,192,0.12)}
+.evo-input::placeholder{color:var(--muted)}
+.progress-track{height:8px;background:rgba(255,255,255,0.08);border-radius:99px;overflow:hidden}
+.progress-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--teal),var(--emerald),var(--gold));transition:width 1.2s cubic-bezier(0.34,1.56,0.64,1);box-shadow:0 0 12px rgba(0,229,192,0.5);background-size:200% 100%;animation:shimmer 2s linear infinite}
+@keyframes shimmer{0%{background-position:100% 0}100%{background-position:-100% 0}}
+.karma-float{position:fixed;pointer-events:none;z-index:999;font-family:'Cinzel',serif;font-size:1.4rem;font-weight:700;color:var(--teal);text-shadow:0 0 20px var(--teal);animation:karmaFloat 2s ease-out both}
+@keyframes karmaFloat{0%{opacity:1;transform:translateY(0) scale(1)}80%{opacity:1;transform:translateY(-80px) scale(1.2)}100%{opacity:0;transform:translateY(-100px) scale(0.8)}}
+#toast-container{position:fixed;bottom:28px;right:28px;z-index:900;display:flex;flex-direction:column;gap:10px}
+.toast{padding:14px 22px;border-radius:12px;background:rgba(13,13,43,0.95);border:1px solid var(--teal);color:var(--text);font-size:0.95rem;font-weight:500;box-shadow:0 8px 30px rgba(0,229,192,0.2);animation:toastIn 0.4s cubic-bezier(0.16,1,0.3,1) both;display:flex;align-items:center;gap:10px;max-width:320px}
+@keyframes toastIn{from{opacity:0;transform:translateX(40px)}to{opacity:1;transform:translateX(0)}}
+.toast.out{animation:toastOut 0.3s ease-in both}
+@keyframes toastOut{to{opacity:0;transform:translateX(40px)}}
+.confetti-piece{position:fixed;pointer-events:none;z-index:1000;width:8px;height:8px;border-radius:2px;animation:confettiFall var(--dur,1.5s) ease-out var(--delay,0s) both}
+@keyframes confettiFall{0%{opacity:1;transform:translate(0,0) rotate(0deg) scale(1)}100%{opacity:0;transform:translate(var(--tx,50px),200px) rotate(var(--rot,360deg)) scale(0.3)}}
+.stat-card{background:var(--glass);border:1px solid var(--border);border-radius:14px;padding:20px;transition:all 0.3s ease;position:relative;overflow:hidden}
+.stat-card::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(0,229,192,0.03),transparent);pointer-events:none}
+.stat-card:hover{transform:translateY(-4px);box-shadow:0 16px 40px rgba(0,229,192,0.1);border-color:rgba(0,229,192,0.3)}
+.lb-row{display:flex;align-items:center;gap:14px;padding:13px 16px;border-radius:12px;transition:all 0.3s ease;margin-bottom:6px;background:var(--glass);border:1px solid transparent}
+.lb-row:hover{border-color:var(--border)}
+.lb-row.user-row{background:rgba(0,229,192,0.08);border-color:rgba(0,229,192,0.3)}
+.lb-avatar{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.1rem;font-weight:700;flex-shrink:0}
+.rank-badge{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.8rem;font-weight:700;flex-shrink:0;font-family:'Cinzel',serif}
+.tooltip-wrap{position:relative;display:inline-block}
+.tooltip-wrap .tooltip-box{position:absolute;bottom:130%;left:50%;transform:translateX(-50%);background:rgba(13,13,43,0.98);border:1px solid var(--border);border-radius:10px;padding:10px 14px;width:220px;font-size:0.82rem;color:var(--text);line-height:1.5;pointer-events:none;opacity:0;transition:opacity 0.2s ease;z-index:200;white-space:normal;box-shadow:0 8px 30px rgba(0,0,0,0.5)}
+.tooltip-wrap:hover .tooltip-box{opacity:1}
+.level-badge{padding:4px 14px;border-radius:99px;font-size:0.82rem;font-weight:700;letter-spacing:0.08em;font-family:'Cinzel',serif}
+.chart-wrap{position:relative}
+.mood-btn{font-size:1.8rem;background:var(--glass);border:2px solid transparent;border-radius:12px;padding:12px 16px;cursor:pointer;transition:all 0.25s ease}
+.mood-btn:hover,.mood-btn.selected{border-color:var(--teal);background:var(--glass2);transform:scale(1.12)}
+.energy-particle{position:fixed;pointer-events:none;z-index:998;width:6px;height:6px;border-radius:50%;background:var(--teal);box-shadow:0 0 8px var(--teal);animation:energyFlow 1.2s ease-out both}
+@keyframes energyFlow{0%{opacity:1;transform:translate(0,0) scale(1)}100%{opacity:0;transform:translate(var(--ex,0px),var(--ey,-80px)) scale(0)}}
+#sidebar-toggle{display:none;position:fixed;top:16px;left:16px;z-index:60;background:var(--glass2);border:1px solid var(--border);border-radius:10px;padding:10px 12px;cursor:pointer;color:var(--teal)}
+@media(max-width:768px){#sidebar{transform:translateX(-100%)}#sidebar.open{transform:translateX(0)}#sidebar-toggle{display:flex}#main-content{margin-left:0;padding:70px 16px 60px}#app-footer{left:0!important}}
+.sanskrit-accent{font-family:'Noto Sans Devanagari',serif;color:var(--teal);opacity:0.6;font-size:0.85rem;letter-spacing:0.1em}
+.streak-fire{display:inline-block;animation:fireWiggle 0.5s ease-in-out infinite alternate}
+@keyframes fireWiggle{from{transform:rotate(-5deg) scale(1)}to{transform:rotate(5deg) scale(1.1)}}
+.glow-teal{text-shadow:0 0 20px rgba(0,229,192,0.7)}
+.glow-amber{text-shadow:0 0 20px rgba(255,159,28,0.7)}
+.glow-gold{text-shadow:0 0 20px rgba(255,215,0,0.7)}
+body.high-contrast{--glass:rgba(0,0,0,0.8);--glass2:rgba(0,229,192,0.2);--border:rgba(0,229,192,0.6);--muted:rgba(224,247,244,0.85)}
+</style>
+</head>
+<body role="main">
+<div id="cosmos-bg" aria-hidden="true"></div>
+<div id="toast-container" role="status" aria-live="polite"></div>
+
+<!-- AUTH -->
+<div id="auth-screen" role="dialog" aria-label="EvoLife Authentication">
+  <div class="auth-card">
+    <div style="text-align:center;margin-bottom:28px">
+      <div style="display:flex;justify-content:center;margin-bottom:16px" aria-hidden="true">
+        <div id="auth-orb" class="evo-orb" style="width:80px;height:80px"></div>
+      </div>
+      <div class="sidebar-logo" style="font-size:1.8rem;margin-bottom:4px">EvoLife</div>
+      <p style="color:var(--muted);font-size:0.9rem;letter-spacing:0.1em">EVOLVE · DISCIPLINE · TRANSCEND</p>
+      <div class="sanskrit-accent" style="margin-top:6px">कर्म • विकास • अनुशासन</div>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:24px;background:rgba(255,255,255,0.04);border-radius:10px;padding:4px">
+      <button id="tab-login"  onclick="switchTab('login')"  style="flex:1;padding:9px;border-radius:8px;border:none;cursor:pointer;font-family:'Rajdhani',sans-serif;font-size:0.95rem;font-weight:600;transition:all 0.25s ease" aria-pressed="true">Login</button>
+      <button id="tab-signup" onclick="switchTab('signup')" style="flex:1;padding:9px;border-radius:8px;border:none;cursor:pointer;font-family:'Rajdhani',sans-serif;font-size:0.95rem;font-weight:600;transition:all 0.25s ease" aria-pressed="false">Sign Up</button>
+    </div>
+    <div id="form-login">
+      <div style="margin-bottom:14px">
+        <label for="login-email" style="display:block;font-size:0.85rem;color:var(--muted);margin-bottom:6px;letter-spacing:0.05em">EMAIL</label>
+        <input id="login-email" class="evo-input" type="email" placeholder="your@email.com" aria-label="Email" value="demo@evolife.app"/>
+      </div>
+      <div style="margin-bottom:20px">
+        <label for="login-pass" style="display:block;font-size:0.85rem;color:var(--muted);margin-bottom:6px;letter-spacing:0.05em">PASSWORD</label>
+        <input id="login-pass" class="evo-input" type="password" placeholder="••••••••" aria-label="Password" value="demo1234"/>
+      </div>
+      <button class="btn-primary" style="width:100%" onclick="doLogin()" aria-label="Login to EvoLife">⚡ Enter the Evolution</button>
+    </div>
+    <div id="form-signup" style="display:none">
+      <div style="margin-bottom:14px">
+        <label for="signup-name" style="display:block;font-size:0.85rem;color:var(--muted);margin-bottom:6px;letter-spacing:0.05em">FULL NAME</label>
+        <input id="signup-name" class="evo-input" type="text" placeholder="Your name" aria-label="Full Name" value="Ghanshyam"/>
+      </div>
+      <div style="margin-bottom:14px">
+        <label for="signup-email" style="display:block;font-size:0.85rem;color:var(--muted);margin-bottom:6px;letter-spacing:0.05em">EMAIL</label>
+        <input id="signup-email" class="evo-input" type="email" placeholder="your@email.com" aria-label="Email"/>
+      </div>
+      <div style="margin-bottom:20px">
+        <label for="signup-pass" style="display:block;font-size:0.85rem;color:var(--muted);margin-bottom:6px;letter-spacing:0.05em">PASSWORD</label>
+        <input id="signup-pass" class="evo-input" type="password" placeholder="Min. 8 characters" aria-label="Password"/>
+      </div>
+      <button class="btn-primary" style="width:100%" onclick="doSignup()" aria-label="Create EvoLife Account">🌱 Begin Your Journey</button>
+    </div>
+    <p style="text-align:center;margin-top:18px;font-size:0.82rem;color:var(--muted)">Your data evolves locally — private &amp; yours forever.</p>
+  </div>
+</div>
+
+<!-- APP SHELL -->
+<div id="app-shell" style="display:none">
+  <button id="sidebar-toggle" onclick="toggleSidebar()" aria-label="Toggle navigation" aria-expanded="false">
+    <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+  </button>
+
+  <!-- SIDEBAR -->
+  <nav id="sidebar" role="navigation" aria-label="Main Navigation">
+    <div style="padding:20px 16px 12px">
+      <div class="sidebar-logo" style="font-size:1.2rem">⚛ EvoLife</div>
+      <div class="sanskrit-accent" style="font-size:0.72rem;margin-top:2px">विकास यात्रा</div>
+    </div>
+    <div style="padding:12px 16px;margin:0 8px 8px;border-radius:12px;background:var(--glass2);border:1px solid var(--border)">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--teal),var(--emerald));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1rem;color:#0A0A1F" aria-hidden="true" id="sidebar-avatar">G</div>
+        <div>
+          <div id="sidebar-name" style="font-weight:600;font-size:0.95rem">Ghanshyam</div>
+          <div id="sidebar-level-text" style="font-size:0.75rem;color:var(--teal)">🌱 Sprout</div>
+        </div>
+      </div>
+      <div style="margin-top:10px">
+        <div style="display:flex;justify-content:space-between;font-size:0.78rem;color:var(--muted);margin-bottom:4px">
+          <span>XP Progress</span><span id="sidebar-xp-text">340/500</span>
+        </div>
+        <div class="progress-track"><div class="progress-fill" id="sidebar-xp-bar" style="width:68%"></div></div>
+      </div>
+    </div>
+    <div style="flex:1;overflow-y:auto;padding-bottom:8px">
+      <div class="nav-item active" onclick="showPage('dashboard')" role="button" tabindex="0" onkeydown="if(event.key==='Enter')showPage('dashboard')"><span aria-hidden="true">🏠</span> Dashboard</div>
+      <div class="nav-item" onclick="showPage('study')"    role="button" tabindex="0" onkeydown="if(event.key==='Enter')showPage('study')"><span aria-hidden="true">📚</span> Study Tracker</div>
+      <div class="nav-item" onclick="showPage('finance')"  role="button" tabindex="0" onkeydown="if(event.key==='Enter')showPage('finance')"><span aria-hidden="true">💰</span> Finance Tracker</div>
+      <div class="nav-item" onclick="showPage('mood')"     role="button" tabindex="0" onkeydown="if(event.key==='Enter')showPage('mood')"><span aria-hidden="true">🌊</span> Mood Tracker</div>
+      <div class="nav-item" onclick="showPage('karma')"    role="button" tabindex="0" onkeydown="if(event.key==='Enter')showPage('karma')"><span aria-hidden="true">☯️</span> Karma / Discipline</div>
+      <div class="nav-item" onclick="showPage('analytics')" role="button" tabindex="0" onkeydown="if(event.key==='Enter')showPage('analytics')"><span aria-hidden="true">📈</span> Analytics</div>
+      <div class="nav-item" onclick="showPage('compete')"  role="button" tabindex="0" onkeydown="if(event.key==='Enter')showPage('compete')"><span aria-hidden="true">🏆</span> Compete</div>
+    </div>
+    <div style="padding:12px 16px;border-top:1px solid var(--border)">
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn-ghost" style="padding:6px 12px;font-size:0.8rem" onclick="toggleContrast()" aria-label="Toggle high contrast">Contrast</button>
+        <button class="btn-ghost" style="padding:6px 12px;font-size:0.8rem" onclick="doLogout()" aria-label="Logout">Logout</button>
+      </div>
+      <div style="margin-top:10px;text-align:center;font-size:0.7rem;color:var(--muted)">Built as Minor Project · April 2026</div>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <main id="main-content">
+
+    <!-- DASHBOARD -->
+    <section id="page-dashboard" class="page active" aria-label="Dashboard">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;flex-wrap:wrap;gap:12px">
+        <div>
+          <h1 style="font-family:'Cinzel',serif;font-size:1.8rem;font-weight:600" class="glow-teal">Namaste, <span id="dash-name">Ghanshyam</span> 🙏</h1>
+          <p style="color:var(--muted);margin-top:4px"><span class="streak-fire">🔥</span> <span id="dash-streak">7</span>-day streak · Your evolution continues</p>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center">
+          <div class="level-badge" id="dash-level-badge" style="background:rgba(0,229,192,0.15);border:1px solid var(--teal);color:var(--teal)">🌱 SPROUT</div>
+          <div style="text-align:right">
+            <div style="font-family:'Cinzel',serif;font-size:1.1rem;color:var(--gold)" class="glow-gold">✦ <span id="dash-total-karma">340</span> Karma</div>
+            <div style="font-size:0.78rem;color:var(--muted)">Total accumulated</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:24px">
+        <div class="stat-card"><div style="color:var(--muted);font-size:0.78rem;letter-spacing:0.08em;margin-bottom:8px">TODAY'S KARMA</div><div style="font-family:'Cinzel',serif;font-size:1.5rem;color:var(--teal)" class="glow-teal" id="stat-today">+45</div><div style="font-size:0.75rem;color:var(--muted);margin-top:4px">Kriyamana</div></div>
+        <div class="stat-card"><div style="color:var(--muted);font-size:0.78rem;letter-spacing:0.08em;margin-bottom:8px">STUDY HOURS</div><div style="font-family:'Cinzel',serif;font-size:1.5rem;color:var(--emerald)">4.5h</div><div style="font-size:0.75rem;color:var(--muted);margin-top:4px">Today</div></div>
+        <div class="stat-card"><div style="color:var(--muted);font-size:0.78rem;letter-spacing:0.08em;margin-bottom:8px">NET BALANCE</div><div style="font-family:'Cinzel',serif;font-size:1.5rem;color:var(--amber)" class="glow-amber">₹2,840</div><div style="font-size:0.75rem;color:var(--muted);margin-top:4px">This month</div></div>
+        <div class="stat-card"><div style="color:var(--muted);font-size:0.78rem;letter-spacing:0.08em;margin-bottom:8px">MOOD SCORE</div><div style="font-family:'Cinzel',serif;font-size:1.5rem;color:var(--gold)">7.2/10</div><div style="font-size:0.75rem;color:var(--muted);margin-top:4px">Weekly avg</div></div>
+        <div class="stat-card"><div style="color:var(--muted);font-size:0.78rem;letter-spacing:0.08em;margin-bottom:8px">GLOBAL RANK</div><div style="font-family:'Cinzel',serif;font-size:1.5rem;color:var(--teal)" id="stat-rank">#3</div><div style="font-size:0.75rem;color:var(--muted);margin-top:4px">Of 8,247</div></div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px">
+        <!-- ORB PANEL -->
+        <div class="glass-card" style="padding:28px;text-align:center">
+          <div style="position:relative;width:100%;height:220px;display:flex;align-items:center;justify-content:center" aria-label="Evolution Orb">
+            <div class="karma-ring" id="ring-sanchita" style="width:190px;height:190px;position:absolute;border-color:rgba(0,229,192,0.3);border-top-color:var(--teal);animation-duration:8s" aria-hidden="true"></div>
+            <div class="karma-ring" id="ring-prarabdha" style="width:150px;height:150px;position:absolute;border-color:rgba(255,159,28,0.2);border-right-color:var(--amber);animation-duration:5s;animation-direction:reverse" aria-hidden="true"></div>
+            <div class="karma-ring" id="ring-kriyamana" style="width:110px;height:110px;position:absolute;border-color:rgba(0,232,122,0.2);border-bottom-color:var(--emerald);animation-duration:3s" aria-hidden="true"></div>
+            <div id="main-orb" class="evo-orb" style="width:84px;height:84px;position:absolute;z-index:2" onclick="quickKarmaBoost()" role="button" tabindex="0" aria-label="Click Evo Orb for energy boost" onkeydown="if(event.key==='Enter')quickKarmaBoost()"></div>
+            <div id="vine-container" class="vine-container" aria-hidden="true"></div>
+          </div>
+          <div style="margin-top:8px">
+            <div style="font-family:'Cinzel',serif;font-size:0.95rem;color:var(--teal)">Evolution Orb</div>
+            <div style="font-size:0.8rem;color:var(--muted);margin-top:4px">Click to channel · Karma: <span id="orb-karma-display" style="color:var(--gold)">340</span></div>
+            <div style="display:flex;justify-content:center;gap:14px;margin-top:10px;flex-wrap:wrap">
+              <div class="tooltip-wrap" style="font-size:0.75rem;color:var(--teal);cursor:help">◎ Sanchita ℹ<div class="tooltip-box"><strong>Sanchita Karma</strong><br>The accumulated sum of all your past karmas — the cosmic balance sheet.</div></div>
+              <div class="tooltip-wrap" style="font-size:0.75rem;color:var(--amber);cursor:help">◎ Prarabdha ℹ<div class="tooltip-box"><strong>Prarabdha Karma</strong><br>The portion of karma currently bearing fruit — unfolding as your circumstances.</div></div>
+              <div class="tooltip-wrap" style="font-size:0.75rem;color:var(--emerald);cursor:help">◎ Kriyamana ℹ<div class="tooltip-box"><strong>Kriyamana Karma</strong><br>Karma created RIGHT NOW with every action and intention. This is your FREE WILL.</div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- MINI CHARTS -->
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div class="glass-card" style="padding:18px"><h3 style="font-size:0.8rem;color:var(--muted);letter-spacing:0.06em;margin-bottom:10px">📚 STUDY THIS WEEK</h3><div class="chart-wrap" style="height:100px"><canvas id="mini-study-chart" aria-label="Weekly study hours mini chart"></canvas></div></div>
+          <div class="glass-card" style="padding:18px"><h3 style="font-size:0.8rem;color:var(--muted);letter-spacing:0.06em;margin-bottom:10px">💰 FINANCE OVERVIEW</h3><div class="chart-wrap" style="height:100px"><canvas id="mini-finance-chart" aria-label="Finance overview mini chart"></canvas></div></div>
+          <div class="glass-card" style="padding:18px"><h3 style="font-size:0.8rem;color:var(--muted);letter-spacing:0.06em;margin-bottom:10px">🌊 MOOD TREND</h3><div class="chart-wrap" style="height:100px"><canvas id="mini-mood-chart" aria-label="Mood trend mini chart"></canvas></div></div>
+        </div>
+      </div>
+
+      <div class="glass-card" style="padding:24px">
+        <h2 style="font-family:'Cinzel',serif;font-size:1rem;margin-bottom:16px;color:var(--teal)">⚡ Quick Actions</h2>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn-primary" onclick="logSession('study',20,'Study session logged')" aria-label="Log study">📚 Log Study +20</button>
+          <button class="btn-amber" onclick="logSession('finance',10,'Finance entry logged')" aria-label="Log finance">💰 Log Finance +10</button>
+          <button class="btn-ghost" onclick="logSession('mood',15,'Mood check-in done')" aria-label="Log mood">🌊 Log Mood +15</button>
+          <button class="btn-ghost" onclick="logSession('meditation',25,'Meditation completed')" aria-label="Meditate">🧘 Meditate +25</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- STUDY -->
+    <section id="page-study" class="page" aria-label="Study Tracker">
+      <h1 style="font-family:'Cinzel',serif;font-size:1.7rem;margin-bottom:6px">📚 Study Tracker</h1>
+      <p style="color:var(--muted);margin-bottom:22px;font-size:0.95rem">Track learning sessions · Each hour = +15 Karma</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:20px">
+        <div class="glass-card" style="padding:22px"><h2 style="font-size:0.82rem;color:var(--muted);letter-spacing:0.06em;margin-bottom:14px">SUBJECT BREAKDOWN</h2><div class="chart-wrap" style="height:210px"><canvas id="study-pie-chart" aria-label="Subject breakdown pie chart"></canvas></div></div>
+        <div class="glass-card" style="padding:22px"><h2 style="font-size:0.82rem;color:var(--muted);letter-spacing:0.06em;margin-bottom:14px">WEEKLY HOURS</h2><div class="chart-wrap" style="height:210px"><canvas id="study-bar-chart" aria-label="Weekly hours bar chart"></canvas></div></div>
+      </div>
+      <div class="glass-card" style="padding:22px;margin-bottom:18px">
+        <h2 style="font-family:'Cinzel',serif;font-size:0.95rem;margin-bottom:14px;color:var(--teal)">Log New Session</h2>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:10px;align-items:end">
+          <div><label for="study-subject" style="font-size:0.8rem;color:var(--muted);display:block;margin-bottom:5px">SUBJECT</label>
+            <select id="study-subject" class="evo-input" aria-label="Subject"><option>Mathematics</option><option>Physics</option><option>Chemistry</option><option>Computer Science</option><option>English</option><option>History</option></select></div>
+          <div><label for="study-hours" style="font-size:0.8rem;color:var(--muted);display:block;margin-bottom:5px">HOURS</label><input id="study-hours" class="evo-input" type="number" min="0.5" max="12" step="0.5" value="2" aria-label="Hours"/></div>
+          <div><label for="study-quality" style="font-size:0.8rem;color:var(--muted);display:block;margin-bottom:5px">QUALITY (1-10)</label><input id="study-quality" class="evo-input" type="number" min="1" max="10" value="8" aria-label="Quality"/></div>
+          <button class="btn-primary" onclick="addStudySession()" aria-label="Add study session">+ Log</button>
+        </div>
+      </div>
+      <div class="glass-card" style="padding:22px">
+        <h2 style="font-family:'Cinzel',serif;font-size:0.95rem;margin-bottom:14px;color:var(--teal)">Recent Sessions</h2>
+        <div id="study-history-list" role="list" aria-label="Study session history"></div>
+      </div>
+    </section>
+
+    <!-- FINANCE -->
+    <section id="page-finance" class="page" aria-label="Finance Tracker">
+      <h1 style="font-family:'Cinzel',serif;font-size:1.7rem;margin-bottom:6px">💰 Finance Tracker</h1>
+      <p style="color:var(--muted);margin-bottom:22px;font-size:0.95rem">Conscious spending = Disciplined karma</p>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px">
+        <div class="stat-card" style="text-align:center"><div style="color:var(--muted);font-size:0.78rem;margin-bottom:8px">TOTAL INCOME</div><div style="font-family:'Cinzel',serif;font-size:1.5rem;color:var(--emerald)">₹<span id="fin-income">12,500</span></div></div>
+        <div class="stat-card" style="text-align:center"><div style="color:var(--muted);font-size:0.78rem;margin-bottom:8px">TOTAL EXPENSE</div><div style="font-family:'Cinzel',serif;font-size:1.5rem;color:var(--amber)">₹<span id="fin-expense">9,660</span></div></div>
+        <div class="stat-card" style="text-align:center"><div style="color:var(--muted);font-size:0.78rem;margin-bottom:8px">NET SAVINGS</div><div style="font-family:'Cinzel',serif;font-size:1.5rem;color:var(--teal)">₹<span id="fin-savings">2,840</span></div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:20px">
+        <div class="glass-card" style="padding:22px"><h2 style="font-size:0.82rem;color:var(--muted);letter-spacing:0.06em;margin-bottom:14px">EXPENSE CATEGORIES</h2><div class="chart-wrap" style="height:210px"><canvas id="fin-pie-chart" aria-label="Expense categories pie chart"></canvas></div></div>
+        <div class="glass-card" style="padding:22px"><h2 style="font-size:0.82rem;color:var(--muted);letter-spacing:0.06em;margin-bottom:14px">INCOME vs EXPENSE</h2><div class="chart-wrap" style="height:210px"><canvas id="fin-bar-chart" aria-label="Income vs expense bar chart"></canvas></div></div>
+      </div>
+      <div class="glass-card" style="padding:22px">
+        <h2 style="font-family:'Cinzel',serif;font-size:0.95rem;margin-bottom:14px;color:var(--teal)">Log Transaction</h2>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr auto;gap:10px;align-items:end">
+          <div><label for="fin-type" style="font-size:0.8rem;color:var(--muted);display:block;margin-bottom:5px">TYPE</label><select id="fin-type" class="evo-input" aria-label="Type"><option value="income">Income</option><option value="expense">Expense</option></select></div>
+          <div><label for="fin-cat" style="font-size:0.8rem;color:var(--muted);display:block;margin-bottom:5px">CATEGORY</label><select id="fin-cat" class="evo-input" aria-label="Category"><option>Food</option><option>Transport</option><option>Education</option><option>Entertainment</option><option>Health</option><option>Savings</option><option>Other</option></select></div>
+          <div><label for="fin-amount" style="font-size:0.8rem;color:var(--muted);display:block;margin-bottom:5px">AMOUNT (₹)</label><input id="fin-amount" class="evo-input" type="number" min="1" value="500" aria-label="Amount"/></div>
+          <div><label for="fin-note" style="font-size:0.8rem;color:var(--muted);display:block;margin-bottom:5px">NOTE</label><input id="fin-note" class="evo-input" type="text" placeholder="Note..." aria-label="Note"/></div>
+          <button class="btn-primary" onclick="addFinanceEntry()" aria-label="Add transaction">+ Add</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- MOOD -->
+    <section id="page-mood" class="page" aria-label="Mood Tracker">
+      <h1 style="font-family:'Cinzel',serif;font-size:1.7rem;margin-bottom:6px">🌊 Mood Tracker</h1>
+      <p style="color:var(--muted);margin-bottom:22px">Emotional awareness = Karmic clarity</p>
+      <div class="glass-card" style="padding:30px;margin-bottom:22px;text-align:center">
+        <h2 style="font-family:'Cinzel',serif;font-size:1.05rem;margin-bottom:18px;color:var(--teal)">How are you feeling right now?</h2>
+        <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:22px" role="group" aria-label="Mood selection">
+          <button class="mood-btn" onclick="selectMood(1,'😰')" aria-label="Anxious 1/10" data-mood="1">😰</button>
+          <button class="mood-btn" onclick="selectMood(3,'😔')" aria-label="Sad 3/10" data-mood="3">😔</button>
+          <button class="mood-btn" onclick="selectMood(5,'😐')" aria-label="Neutral 5/10" data-mood="5">😐</button>
+          <button class="mood-btn" onclick="selectMood(6,'🙂')" aria-label="Good 6/10" data-mood="6">🙂</button>
+          <button class="mood-btn" onclick="selectMood(8,'😊')" aria-label="Happy 8/10" data-mood="8">😊</button>
+          <button class="mood-btn" onclick="selectMood(9,'😄')" aria-label="Great 9/10" data-mood="9">😄</button>
+          <button class="mood-btn" onclick="selectMood(10,'🤩')" aria-label="Ecstatic 10/10" data-mood="10">🤩</button>
+        </div>
+        <div style="margin-bottom:16px"><input id="mood-note" class="evo-input" style="max-width:400px" type="text" placeholder="What's on your mind? (optional)" aria-label="Mood note"/></div>
+        <button class="btn-primary" onclick="logMoodEntry()" aria-label="Log mood">🌊 Log Mood (+15 Karma)</button>
+        <div id="mood-selected" style="margin-top:14px;font-size:1.6rem" aria-live="polite"></div>
+      </div>
+      <div class="glass-card" style="padding:22px">
+        <h2 style="font-size:0.82rem;color:var(--muted);letter-spacing:0.06em;margin-bottom:14px">WEEKLY MOOD JOURNEY</h2>
+        <div class="chart-wrap" style="height:230px"><canvas id="mood-bar-chart" aria-label="Weekly mood chart"></canvas></div>
+      </div>
+    </section>
+
+    <!-- KARMA -->
+    <section id="page-karma" class="page" aria-label="Karma and Discipline">
+      <h1 style="font-family:'Cinzel',serif;font-size:1.7rem;margin-bottom:6px">☯️ Karma / Discipline</h1>
+      <p style="color:var(--muted);margin-bottom:22px">The cosmic ledger of your growth · सत्कर्म = True Action</p>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-bottom:24px">
+        <div class="glass-card" style="padding:26px;text-align:center;border-color:rgba(0,229,192,0.3)">
+          <div class="tooltip-wrap" style="display:inline-block;cursor:help"><div class="sanskrit-accent" style="font-size:1.1rem;margin-bottom:8px;opacity:1">संचित</div><div class="tooltip-box"><strong>Sanchita</strong> — total accumulated karma across all sessions. The deep reservoir of your discipline.</div></div>
+          <div style="font-family:'Cinzel',serif;font-size:2rem;color:var(--teal);margin:8px 0" id="karma-sanchita">1,240</div>
+          <div style="color:var(--muted);font-size:0.82rem">Historical Total</div>
+          <div style="margin-top:12px"><div class="progress-track"><div class="progress-fill" style="width:82%"></div></div></div>
+        </div>
+        <div class="glass-card" style="padding:26px;text-align:center;border-color:rgba(255,159,28,0.3)">
+          <div class="tooltip-wrap" style="display:inline-block;cursor:help"><div class="sanskrit-accent" style="font-size:1.1rem;margin-bottom:8px;opacity:1;color:var(--amber)">प्रारब्ध</div><div class="tooltip-box"><strong>Prarabdha</strong> — karma currently bearing fruit. Your last 7 days manifesting as opportunities.</div></div>
+          <div style="font-family:'Cinzel',serif;font-size:2rem;color:var(--amber);margin:8px 0" id="karma-prarabdha">295</div>
+          <div style="color:var(--muted);font-size:0.82rem">Last 7 Days</div>
+          <div style="margin-top:12px"><div class="progress-track"><div class="progress-fill" style="width:59%;background:linear-gradient(90deg,var(--amber),var(--amber2))"></div></div></div>
+        </div>
+        <div class="glass-card" style="padding:26px;text-align:center;border-color:rgba(0,232,122,0.3)">
+          <div class="tooltip-wrap" style="display:inline-block;cursor:help"><div class="sanskrit-accent" style="font-size:1.1rem;margin-bottom:8px;opacity:1;color:var(--emerald)">क्रियमाण</div><div class="tooltip-box"><strong>Kriyamana</strong> — karma created RIGHT NOW. Every session logged today. This is YOUR FREE WILL.</div></div>
+          <div style="font-family:'Cinzel',serif;font-size:2rem;color:var(--emerald);margin:8px 0" id="karma-kriyamana">45</div>
+          <div style="color:var(--muted);font-size:0.82rem">Today's Creation</div>
+          <div style="margin-top:12px"><div class="progress-track"><div class="progress-fill" id="kriyamana-bar" style="width:45%;background:linear-gradient(90deg,var(--emerald),var(--teal))"></div></div></div>
+        </div>
+      </div>
+      <div class="glass-card" style="padding:22px;margin-bottom:18px">
+        <h2 style="font-family:'Cinzel',serif;font-size:0.95rem;margin-bottom:14px;color:var(--teal)">✦ Karma Activity Log</h2>
+        <div id="karma-log" style="display:flex;flex-direction:column;gap:7px;max-height:280px;overflow-y:auto" role="log" aria-label="Karma activity" aria-live="polite"></div>
+      </div>
+      <div class="glass-card" style="padding:22px">
+        <h2 style="font-family:'Cinzel',serif;font-size:0.95rem;margin-bottom:14px;color:var(--teal)">⚡ Daily Discipline Rituals</h2>
+        <div id="habits-list" style="display:flex;flex-direction:column;gap:9px"></div>
+      </div>
+    </section>
+
+    <!-- ANALYTICS -->
+    <section id="page-analytics" class="page" aria-label="Analytics">
+      <h1 style="font-family:'Cinzel',serif;font-size:1.7rem;margin-bottom:6px">📈 Analytics</h1>
+      <p style="color:var(--muted);margin-bottom:22px">Deep insight into your evolution trajectory</p>
+      <div class="glass-card" style="padding:26px;margin-bottom:20px">
+        <h2 style="font-size:0.82rem;color:var(--muted);letter-spacing:0.06em;margin-bottom:14px">KARMA TREND — LAST 30 DAYS</h2>
+        <div class="chart-wrap" style="height:250px"><canvas id="analytics-trend-chart" aria-label="30-day karma trend line chart"></canvas></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:20px">
+        <div class="glass-card" style="padding:22px"><h2 style="font-size:0.82rem;color:var(--muted);letter-spacing:0.06em;margin-bottom:14px">ACTIVITY BREAKDOWN</h2><div class="chart-wrap" style="height:190px"><canvas id="analytics-breakdown-chart" aria-label="Activity breakdown doughnut chart"></canvas></div></div>
+        <div class="glass-card" style="padding:22px"><h2 style="font-size:0.82rem;color:var(--muted);letter-spacing:0.06em;margin-bottom:14px">PEAK PERFORMANCE DAYS</h2><div class="chart-wrap" style="height:190px"><canvas id="analytics-peak-chart" aria-label="Peak performance radar chart"></canvas></div></div>
+      </div>
+      <div class="glass-card" style="padding:22px">
+        <h2 style="font-family:'Cinzel',serif;font-size:0.95rem;margin-bottom:14px;color:var(--gold)">✦ AI Insights</h2>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div style="padding:13px 15px;border-radius:10px;background:rgba(0,229,192,0.06);border:1px solid rgba(0,229,192,0.15)"><span style="color:var(--teal)">🔮</span> Peak study hours: <strong>9 AM–12 PM</strong>. Schedule deep work sessions here for maximum retention.</div>
+          <div style="padding:13px 15px;border-radius:10px;background:rgba(255,159,28,0.06);border:1px solid rgba(255,159,28,0.15)"><span style="color:var(--amber)">⚠️</span> Friday &amp; Saturday show <strong>40% lower karma</strong>. Add a weekend ritual to maintain streak.</div>
+          <div style="padding:13px 15px;border-radius:10px;background:rgba(0,232,122,0.06);border:1px solid rgba(0,232,122,0.15)"><span style="color:var(--emerald)">🌟</span> You've maintained a <strong>7-day streak</strong>! At this pace you reach Tree level in ~18 days.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- COMPETE -->
+    <section id="page-compete" class="page" aria-label="Compete and Leaderboard">
+      <h1 style="font-family:'Cinzel',serif;font-size:1.7rem;margin-bottom:8px">🏆 Global Leaderboard</h1>
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:22px;flex-wrap:wrap">
+        <div style="display:flex;align-items:center;gap:8px">
+          <div style="width:10px;height:10px;border-radius:50%;background:var(--emerald);animation:orbPulse 1.5s ease-in-out infinite" aria-hidden="true"></div>
+          <span style="color:var(--emerald);font-weight:600" id="evolvers-count">8,247</span>
+          <span style="color:var(--muted)">evolvers active right now</span>
+        </div>
+        <div style="padding:4px 14px;border-radius:99px;background:rgba(0,229,192,0.1);border:1px solid rgba(0,229,192,0.3);font-size:0.82rem;color:var(--teal)">🔴 LIVE</div>
+      </div>
+      <div class="glass-card" style="padding:22px;margin-bottom:18px">
+        <div id="leaderboard-list" role="list" aria-label="Global leaderboard"></div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px">
+        <div class="stat-card" style="text-align:center;border-color:rgba(255,215,0,0.3)"><div style="font-size:2rem;margin-bottom:8px">🥉</div><div style="font-family:'Cinzel',serif;font-size:1.4rem;color:var(--gold)">Rank #3</div><div style="color:var(--muted);font-size:0.8rem">Your standing</div></div>
+        <div class="stat-card" style="text-align:center"><div style="font-size:2rem;margin-bottom:8px">⚡</div><div style="font-family:'Cinzel',serif;font-size:1.4rem;color:var(--teal)" id="compete-karma">340</div><div style="color:var(--muted);font-size:0.8rem">Total Karma</div></div>
+        <div class="stat-card" style="text-align:center"><div style="font-size:2rem;margin-bottom:8px">🔥</div><div style="font-family:'Cinzel',serif;font-size:1.4rem;color:var(--amber)" id="compete-streak">7</div><div style="color:var(--muted);font-size:0.8rem">Day Streak</div></div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- FOOTER -->
+<footer style="position:fixed;bottom:0;right:0;left:240px;padding:7px 24px;background:rgba(10,10,31,0.92);border-top:1px solid var(--border);font-size:0.72rem;color:var(--muted);display:flex;justify-content:space-between;z-index:40;backdrop-filter:blur(8px)" id="app-footer">
+  <span>Built as Minor Project – April 2026 · EvoLife v1.0</span>
+  <span style="color:var(--teal)">✦ Karma accumulating…</span>
+</footer>
+
+<script>
+// ════ COSMOS ════
+(function(){
+  const bg=document.getElementById('cosmos-bg');
+  for(let i=0;i<140;i++){
+    const s=document.createElement('div');s.className='star';
+    const sz=Math.random()*2.5+0.5;
+    s.style.cssText=`width:${sz}px;height:${sz}px;left:${Math.random()*100}%;top:${Math.random()*100}%;--dur:${2+Math.random()*4}s;--op:${0.4+Math.random()*0.6};animation-delay:${Math.random()*5}s`;
+    bg.appendChild(s);
+  }
+  ['ॐ','☸','✦','⊕','✿','⚛','☯','🪷'].forEach((sym,i)=>{
+    const el=document.createElement('div');el.className='cosmic-symbol';el.textContent=sym;
+    el.style.cssText=`left:${8+i*12}%;top:${15+Math.random()*65}%;animation-delay:${i*2.2}s;animation-duration:${10+Math.random()*8}s`;
+    bg.appendChild(el);
+  });
+})();
+
+// ════ STATE ════
+const S={
+  user:JSON.parse(localStorage.getItem('evo_user')||'null'),
+  karma:+localStorage.getItem('evo_karma')||340,
+  streak:+localStorage.getItem('evo_streak')||7,
+  todayKarma:+localStorage.getItem('evo_today_karma')||45,
+  karmaLog:JSON.parse(localStorage.getItem('evo_karma_log')||'[]'),
+  studySessions:JSON.parse(localStorage.getItem('evo_study')||'[]'),
+  financeEntries:JSON.parse(localStorage.getItem('evo_finance')||'[]'),
+  moodEntries:JSON.parse(localStorage.getItem('evo_mood')||'[]'),
+  habits:JSON.parse(localStorage.getItem('evo_habits')||JSON.stringify([
+    {id:1,name:'Morning Meditation',emoji:'🧘',done:false,karma:25},
+    {id:2,name:'Reading 30 mins',emoji:'📖',done:true,karma:15},
+    {id:3,name:'Exercise / Yoga',emoji:'💪',done:false,karma:20},
+    {id:4,name:'Gratitude Journal',emoji:'📓',done:true,karma:10},
+    {id:5,name:'Cold Shower',emoji:'🚿',done:false,karma:12},
+  ])),
+  selectedMood:null,
+  currentPage:'dashboard'
+};
+
+function save(){
+  localStorage.setItem('evo_karma',S.karma);
+  localStorage.setItem('evo_streak',S.streak);
+  localStorage.setItem('evo_today_karma',S.todayKarma);
+  localStorage.setItem('evo_karma_log',JSON.stringify(S.karmaLog.slice(0,60)));
+  localStorage.setItem('evo_study',JSON.stringify(S.studySessions.slice(0,30)));
+  localStorage.setItem('evo_finance',JSON.stringify(S.financeEntries.slice(0,30)));
+  localStorage.setItem('evo_mood',JSON.stringify(S.moodEntries.slice(0,30)));
+  localStorage.setItem('evo_habits',JSON.stringify(S.habits));
+}
+
+// ════ LEVELS ════
+const LEVELS=[
+  {name:'Seed',    emoji:'🌰',min:0,   max:99,  color:'#C8A882'},
+  {name:'Sprout',  emoji:'🌱',min:100, max:499, color:'#00E5C0'},
+  {name:'Sapling', emoji:'🌿',min:500, max:999, color:'#00E87A'},
+  {name:'Tree',    emoji:'🌳',min:1000,max:2499,color:'#FFD700'},
+  {name:'Ancient', emoji:'🌲',min:2500,max:Infinity,color:'#FF9F1C'},
+];
+const getLevel=k=>LEVELS.find(l=>k>=l.min&&k<=l.max)||LEVELS[0];
+const getLvProg=k=>{const l=getLevel(k);const r=l.max===Infinity?5000:l.max-l.min;return Math.min(100,((k-l.min)/r)*100)};
+
+// ════ AUTH ════
+function switchTab(tab){
+  const isL=tab==='login';
+  document.getElementById('form-login').style.display=isL?'':'none';
+  document.getElementById('form-signup').style.display=isL?'none':'';
+  document.getElementById('tab-login').style.cssText=isL?'background:var(--teal);color:#0A0A1F':'background:transparent;color:var(--muted)';
+  document.getElementById('tab-signup').style.cssText=!isL?'background:var(--teal);color:#0A0A1F':'background:transparent;color:var(--muted)';
+  document.getElementById('tab-login').setAttribute('aria-pressed',String(isL));
+  document.getElementById('tab-signup').setAttribute('aria-pressed',String(!isL));
+}
+switchTab('login');
+
+function doLogin(){
+  const email=document.getElementById('login-email').value;
+  if(!email){toast('⚠️ Enter your email','amber');return;}
+  S.user={name:S.user?.name||'Ghanshyam',email};
+  localStorage.setItem('evo_user',JSON.stringify(S.user));
+  launchApp();
+}
+function doSignup(){
+  const name=document.getElementById('signup-name').value.trim()||'Ghanshyam';
+  const email=document.getElementById('signup-email').value.trim();
+  if(!name||!email){toast('⚠️ Fill all fields','amber');return;}
+  S.user={name,email};localStorage.setItem('evo_user',JSON.stringify(S.user));
+  launchApp();
+}
+function doLogout(){
+  document.getElementById('app-shell').style.display='none';
+  document.getElementById('auth-screen').style.display='flex';
+  document.getElementById('app-footer').style.left='0';
+}
+function launchApp(){
+  document.getElementById('auth-screen').style.display='none';
+  document.getElementById('app-shell').style.display='';
+  document.getElementById('app-footer').style.left='240px';
+  updateAllUI();initAllCharts();populateKarmaLog();populateHabits();populateStudyHistory();renderLeaderboard();
+  toast(`🙏 Welcome back, ${S.user.name}! Your karma awaits.`,'teal');
+  updateOrbVines();
+}
+if(S.user)launchApp();
+
+// ════ NAV ════
+function showPage(page){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById(`page-${page}`).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n=>{if(n.getAttribute('onclick')?.includes(`'${page}'`))n.classList.add('active');});
+  S.currentPage=page;
+  if(page==='karma'){populateKarmaLog();updateKarmaRings();}
+  if(page==='compete')renderLeaderboard();
+  if(window.innerWidth<=768)document.getElementById('sidebar').classList.remove('open');
+}
+function toggleSidebar(){
+  const sb=document.getElementById('sidebar');
+  const open=sb.classList.toggle('open');
+  document.getElementById('sidebar-toggle').setAttribute('aria-expanded',String(open));
+}
+function toggleContrast(){document.body.classList.toggle('high-contrast');toast('🎨 Contrast toggled','teal');}
+
+// ════ KARMA ENGINE ════
+function addKarma(pts,label,triggerEl){
+  S.karma+=pts;S.todayKarma+=pts;
+  S.karmaLog.unshift({label,points:pts,time:new Date().toISOString()});
+  save();updateAllUI();
+  spawnKarmaFloat(pts,triggerEl);
+  spawnEnergyParticles(triggerEl);
+  updateOrbVines();
+  if(S.currentPage==='karma'){populateKarmaLog();updateKarmaRings();}
+  if(S.currentPage==='compete')renderLeaderboard();
+}
+
+function updateKarmaRings(){
+  const sEl=document.getElementById('karma-sanchita');
+  const pEl=document.getElementById('karma-prarabdha');
+  const kEl=document.getElementById('karma-kriyamana');
+  const kb=document.getElementById('kriyamana-bar');
+  if(sEl)sEl.textContent=(S.karma+900).toLocaleString();
+  if(pEl)pEl.textContent=Math.floor(S.karma*0.87);
+  if(kEl)kEl.textContent=S.todayKarma;
+  if(kb)kb.style.width=Math.min(100,S.todayKarma/2)+'%';
+}
+
+const ORB_STYLES={
+  'Seed':  'radial-gradient(circle at 35% 35%,#C8A882,#8B7355 50%,#5C4A2A 100%)',
+  'Sprout':'radial-gradient(circle at 35% 35%,#00FFD1,#00B89C 50%,#006B58 100%)',
+  'Sapling':'radial-gradient(circle at 35% 35%,#00FF90,#00B86A 50%,#005C36 100%)',
+  'Tree':  'radial-gradient(circle at 35% 35%,#FFE878,#FFD700 50%,#B8960A 100%)',
+  'Ancient':'radial-gradient(circle at 35% 35%,#FFB347,#FF9F1C 50%,#B86000 100%)',
+};
+
+function updateAllUI(){
+  const name=S.user?.name||'Ghanshyam';
+  const lv=getLevel(S.karma);const prog=getLvProg(S.karma);
+  const g=id=>document.getElementById(id);
+  const sa=g('sidebar-avatar');if(sa)sa.textContent=name[0].toUpperCase();
+  const sn=g('sidebar-name');if(sn)sn.textContent=name;
+  const sl=g('sidebar-level-text');if(sl)sl.textContent=`${lv.emoji} ${lv.name}`;
+  const sx=g('sidebar-xp-text');if(sx)sx.textContent=`${S.karma}/${lv.max===Infinity?9999:lv.max}`;
+  const sb=g('sidebar-xp-bar');if(sb)sb.style.width=prog+'%';
+  const dn=g('dash-name');if(dn)dn.textContent=name;
+  const ds=g('dash-streak');if(ds)ds.textContent=S.streak;
+  const dtk=g('dash-total-karma');if(dtk)dtk.textContent=S.karma.toLocaleString();
+  const db=g('dash-level-badge');if(db){db.textContent=`${lv.emoji} ${lv.name.toUpperCase()}`;db.style.color=lv.color;db.style.borderColor=lv.color;}
+  const st=g('stat-today');if(st)st.textContent=`+${S.todayKarma}`;
+  const ok=g('orb-karma-display');if(ok)ok.textContent=S.karma.toLocaleString();
+  const ck=g('compete-karma');if(ck)ck.textContent=S.karma;
+  const cs=g('compete-streak');if(cs)cs.textContent=S.streak;
+  document.querySelectorAll('.evo-orb').forEach(o=>{o.style.background=ORB_STYLES[lv.name]||ORB_STYLES['Sprout'];});
+  updateKarmaRings();
+}
+
+// ════ ORB VINES ════
+function updateOrbVines(){
+  const vc=document.getElementById('vine-container');if(!vc)return;
+  vc.innerHTML='';
+  const cnt=Math.min(14,Math.floor(S.karma/45));
+  for(let i=0;i<cnt;i++){
+    const angle=(i/cnt)*360;
+    const vine=document.createElement('div');vine.className='vine';
+    const h=18+Math.random()*28;
+    vine.style.cssText=`height:${h}px;left:50%;top:50%;transform-origin:bottom center;--angle:${angle}deg;animation-delay:${i*0.07}s;margin-left:-1.5px;margin-top:-${h}px`;
+    vc.appendChild(vine);
+    if(i%3===0){const leaf=document.createElement('div');leaf.className='leaf';leaf.style.cssText=`left:50%;top:calc(50% - ${h+4}px);animation-delay:${i*0.07+0.3}s`;vc.appendChild(leaf);}
+  }
+}
+
+// ════ FX ════
+function spawnKarmaFloat(pts,el){
+  const x=el?el.getBoundingClientRect().left+20:window.innerWidth/2;
+  const y=el?el.getBoundingClientRect().top:window.innerHeight/2;
+  const kf=document.createElement('div');kf.className='karma-float';
+  kf.textContent=`+${pts} ✦`;kf.style.left=x+'px';kf.style.top=y+'px';
+  document.body.appendChild(kf);setTimeout(()=>kf.remove(),2100);
+  const orb=document.getElementById('main-orb');
+  if(orb){orb.classList.add('orb-karma-burst');setTimeout(()=>orb.classList.remove('orb-karma-burst'),700);}
+}
+function spawnEnergyParticles(el){
+  const x=el?el.getBoundingClientRect().left+20:window.innerWidth/2;
+  const y=el?el.getBoundingClientRect().top+10:window.innerHeight/2;
+  const colors=['var(--teal)','var(--emerald)','var(--gold)','var(--amber)'];
+  for(let i=0;i<8;i++){
+    const p=document.createElement('div');p.className='energy-particle';
+    const ex=(Math.random()-0.5)*120,ey=-(Math.random()*100+30);
+    p.style.cssText=`left:${x}px;top:${y}px;background:${colors[i%4]};box-shadow:0 0 8px ${colors[i%4]};--ex:${ex}px;--ey:${ey}px;animation-delay:${i*0.05}s`;
+    document.body.appendChild(p);setTimeout(()=>p.remove(),1400);
+  }
+}
+function spawnConfetti(x,y){
+  const colors=['#00E5C0','#FF9F1C','#FFD700','#00E87A','#FF6B6B','#A78BFA'];
+  for(let i=0;i<26;i++){
+    const c=document.createElement('div');c.className='confetti-piece';
+    const tx=(Math.random()-0.5)*200,rot=Math.random()*720-360;
+    c.style.cssText=`left:${x}px;top:${y}px;background:${colors[i%6]};--tx:${tx}px;--rot:${rot}deg;--dur:${0.8+Math.random()*0.7}s;--delay:${Math.random()*0.2}s`;
+    document.body.appendChild(c);setTimeout(()=>c.remove(),2000);
+  }
+}
+function toast(msg,type='teal'){
+  const tc=document.getElementById('toast-container');
+  const t=document.createElement('div');t.className='toast';
+  const icons={teal:'✦',amber:'⚡',gold:'🌟'};
+  t.innerHTML=`<span style="color:var(--${type})">${icons[type]||'✦'}</span><span>${msg}</span>`;
+  tc.appendChild(t);
+  setTimeout(()=>{t.classList.add('out');setTimeout(()=>t.remove(),350);},3600);
+}
+
+// ════ TRACKERS ════
+function logSession(type,karma,msg){
+  addKarma(karma,`${msg} (+${karma})`,event?.target);
+  toast(`🌟 ${msg} · +${karma} Karma`,'teal');
+  spawnConfetti(window.innerWidth/2,window.innerHeight/3);
+}
+function quickKarmaBoost(){
+  addKarma(5,'Evo Orb channeling (+5)',document.getElementById('main-orb'));
+  toast('⚛ Energy channeled through the Evo Orb!','teal');
+}
+
+function addStudySession(){
+  const subject=document.getElementById('study-subject').value;
+  const hours=parseFloat(document.getElementById('study-hours').value)||1;
+  const quality=parseInt(document.getElementById('study-quality').value)||7;
+  const karma=Math.round(hours*15+(quality-5)*3);
+  S.studySessions.unshift({subject,hours,quality,karma,date:new Date().toISOString()});
+  addKarma(karma,`Study: ${subject} ${hours}h Q${quality}`,event?.target);
+  populateStudyHistory();
+  toast(`📚 ${hours}h of ${subject} logged! +${karma} Karma`,'teal');
+  spawnConfetti(window.innerWidth/2,200);
+}
+
+function populateStudyHistory(){
+  const list=document.getElementById('study-history-list');if(!list)return;
+  const base=[
+    {subject:'Mathematics',hours:2.5,quality:9,karma:40,date:new Date(Date.now()-86400000).toISOString()},
+    {subject:'Physics',hours:1.5,quality:7,karma:22,date:new Date(Date.now()-172800000).toISOString()},
+    {subject:'Computer Science',hours:3,quality:10,karma:50,date:new Date(Date.now()-259200000).toISOString()},
+  ];
+  const sessions=[...S.studySessions,...base].slice(0,8);
+  list.innerHTML=sessions.map(s=>`
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:11px 13px;border-radius:10px;background:var(--glass);border:1px solid var(--border);margin-bottom:7px" role="listitem">
+      <div style="display:flex;align-items:center;gap:11px"><span style="font-size:1.3rem">📚</span>
+        <div><div style="font-weight:600">${s.subject}</div><div style="font-size:0.76rem;color:var(--muted)">${new Date(s.date).toLocaleDateString()} · ${s.hours}h · Q${s.quality}/10</div></div>
+      </div>
+      <div style="font-family:'Cinzel',serif;color:var(--teal);flex-shrink:0">+${s.karma}</div>
+    </div>`).join('');
+}
+
+function addFinanceEntry(){
+  const type=document.getElementById('fin-type').value;
+  const cat=document.getElementById('fin-cat').value;
+  const amount=parseFloat(document.getElementById('fin-amount').value)||0;
+  const note=document.getElementById('fin-note').value;
+  const karma=type==='income'?10:(cat==='Savings'?15:5);
+  S.financeEntries.unshift({type,cat,amount,note,karma,date:new Date().toISOString()});
+  addKarma(karma,`Finance: ${type} ₹${amount} (${cat})`,event?.target);
+  toast(`💰 ₹${amount} ${type} logged! +${karma} Karma`,'amber');
+}
+
+function selectMood(score,emoji){
+  S.selectedMood={score,emoji};
+  document.querySelectorAll('.mood-btn').forEach(b=>{b.classList.toggle('selected',parseInt(b.dataset.mood)===score);});
+  document.getElementById('mood-selected').textContent=`${emoji} Selected: ${score}/10`;
+}
+function logMoodEntry(){
+  if(!S.selectedMood){toast('⚠️ Select a mood first','amber');return;}
+  const note=document.getElementById('mood-note').value;
+  S.moodEntries.unshift({...S.selectedMood,note,date:new Date().toISOString()});
+  addKarma(15,`Mood: ${S.selectedMood.emoji} ${S.selectedMood.score}/10`,event?.target);
+  S.selectedMood=null;
+  document.getElementById('mood-selected').textContent='';
+  document.querySelectorAll('.mood-btn').forEach(b=>b.classList.remove('selected'));
+  document.getElementById('mood-note').value='';
+  toast('🌊 Mood logged! Awareness = Clarity. +15 Karma','teal');
+}
+
+function populateHabits(){
+  const list=document.getElementById('habits-list');if(!list)return;
+  list.innerHTML=S.habits.map(h=>`
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:13px 15px;border-radius:12px;background:${h.done?'rgba(0,232,122,0.08)':'var(--glass)'};border:1px solid ${h.done?'rgba(0,232,122,0.3)':'var(--border)'};transition:all 0.3s ease">
+      <div style="display:flex;align-items:center;gap:12px"><span style="font-size:1.4rem">${h.emoji}</span>
+        <div><div style="font-weight:600;${h.done?'text-decoration:line-through;opacity:0.65':''}">${h.name}</div><div style="font-size:0.76rem;color:var(--muted)">+${h.karma} Karma</div></div>
+      </div>
+      <button onclick="toggleHabit(${h.id})" style="padding:7px 16px;border-radius:8px;border:1px solid ${h.done?'var(--emerald)':'var(--border)'};background:${h.done?'rgba(0,232,122,0.18)':'transparent'};color:${h.done?'var(--emerald)':'var(--muted)'};cursor:pointer;font-family:'Rajdhani',sans-serif;font-size:0.88rem;font-weight:600;transition:all 0.2s ease" aria-label="${h.done?'Unmark':'Complete'} ${h.name}">${h.done?'✓ Done':'Mark Done'}</button>
+    </div>`).join('');
+}
+function toggleHabit(id){
+  const h=S.habits.find(x=>x.id===id);if(!h)return;
+  if(!h.done){h.done=true;addKarma(h.karma,`Habit: ${h.name}`,event?.target);toast(`${h.emoji} ${h.name} done! +${h.karma} Karma`,'teal');}
+  else{h.done=false;save();toast(`${h.emoji} Unmarked`,'amber');}
+  populateHabits();
+}
+
+function populateKarmaLog(){
+  const log=document.getElementById('karma-log');if(!log)return;
+  const base=[
+    {label:'Study: Mathematics 2.5h Q9',points:40,time:new Date(Date.now()-3600000).toISOString()},
+    {label:'Habit: Reading 30 mins',points:15,time:new Date(Date.now()-7200000).toISOString()},
+    {label:'Study: Physics 1.5h Q7',points:22,time:new Date(Date.now()-86400000).toISOString()},
+    {label:'Mood logged: 😊 8/10',points:15,time:new Date(Date.now()-172800000).toISOString()},
+    {label:'Finance: income ₹5000',points:10,time:new Date(Date.now()-259200000).toISOString()},
+  ];
+  const entries=[...S.karmaLog,...base].slice(0,18);
+  log.innerHTML=entries.map(e=>`
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 13px;border-radius:9px;background:var(--glass);border:1px solid var(--border)" role="listitem">
+      <span style="font-size:0.86rem">${e.label}</span>
+      <span style="font-family:'Cinzel',serif;color:var(--teal);font-size:0.88rem;flex-shrink:0;margin-left:8px">+${e.points}</span>
+    </div>`).join('');
+  updateKarmaRings();
+}
+
+// ════ LEADERBOARD ════
+const FAKE=[
+  {name:'Arjun Sharma',  city:'Delhi',  karma:520,streak:14,avatar:'A',color:'#FF6B6B'},
+  {name:'Priya Nair',    city:'Mumbai', karma:480,streak:11,avatar:'P',color:'#A78BFA'},
+  {name:'Rahul Verma',   city:'Pune',   karma:395,streak:9, avatar:'R',color:'#FFB347'},
+  {name:'Sneha Gupta',   city:'Jaipur', karma:310,streak:6, avatar:'S',color:'#60D8A8'},
+  {name:'Dev Patel',     city:'Surat',  karma:255,streak:4, avatar:'D',color:'#93C5FD'},
+];
+function renderLeaderboard(){
+  const list=document.getElementById('leaderboard-list');if(!list)return;
+  const userName=S.user?.name||'Ghanshyam';
+  const allUsers=[
+    ...FAKE.slice(0,2),
+    {name:userName,city:'You',karma:S.karma,streak:S.streak,avatar:userName[0].toUpperCase(),color:'var(--teal)',isUser:true},
+    ...FAKE.slice(2),
+  ].sort((a,b)=>b.karma-a.karma);
+  const rankIcons=['🥇','🥈','🥉','4️⃣','5️⃣','6️⃣'];
+  const rankColors=['#FFD700','#C0C0C0','#CD7F32','','',''];
+  list.innerHTML=allUsers.map((u,i)=>`
+    <div class="lb-row ${u.isUser?'user-row':''}" role="listitem" aria-label="Rank ${i+1}: ${u.name}, ${u.karma} karma">
+      <div class="rank-badge" style="font-size:1rem">${rankIcons[i]||i+1}</div>
+      <div class="lb-avatar" style="background:${u.isUser?'linear-gradient(135deg,var(--teal),var(--emerald))':u.color+'33'};color:${u.isUser?'#0A0A1F':u.color}">${u.avatar}</div>
+      <div style="flex:1">
+        <div style="font-weight:600;${u.isUser?'color:var(--teal)':''}">${u.name}${u.isUser?' <span style="font-size:0.72rem;color:var(--teal);border:1px solid var(--teal);padding:1px 6px;border-radius:99px">YOU</span>':''}</div>
+        <div style="font-size:0.76rem;color:var(--muted)">${u.city} · 🔥 ${u.streak}-day streak</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-family:'Cinzel',serif;font-size:1rem;color:${u.isUser?'var(--gold)':rankColors[i]||'var(--text)'}">${u.karma.toLocaleString()}</div>
+        <div style="font-size:0.72rem;color:var(--muted)">karma</div>
+      </div>
+    </div>`).join('');
+  const ec=document.getElementById('evolvers-count');if(ec)ec.textContent=(8247+Math.floor(Math.random()*5)).toLocaleString();
+  const myRank=allUsers.findIndex(u=>u.isUser)+1;
+  const sr=document.getElementById('stat-rank');if(sr)sr.textContent=`#${myRank}`;
+}
+setInterval(()=>{if(S.currentPage==='compete')renderLeaderboard();},4200);
+
+// ════ CHARTS ════
+const CD={
+  scales:{
+    x:{ticks:{color:'rgba(224,247,244,0.5)',font:{family:'Rajdhani'}},grid:{color:'rgba(255,255,255,0.04)'}},
+    y:{ticks:{color:'rgba(224,247,244,0.5)',font:{family:'Rajdhani'}},grid:{color:'rgba(255,255,255,0.06)'}}
+  },
+  plugins:{legend:{labels:{color:'rgba(224,247,244,0.7)',font:{family:'Rajdhani',size:11}}}}
+};
+const COLORS=['rgba(0,229,192,0.85)','rgba(0,232,122,0.85)','rgba(255,159,28,0.85)','rgba(255,215,0,0.85)','rgba(167,139,250,0.85)','rgba(96,216,168,0.85)'];
+const charts={};
+
+function mkChart(id,type,data,opts={}){
+  const el=document.getElementById(id);if(!el)return;
+  if(charts[id])charts[id].destroy();
+  charts[id]=new Chart(el,{type,data,options:{responsive:true,maintainAspectRatio:false,animation:{duration:900,easing:'easeInOutQuart'},...opts,plugins:{...CD.plugins,...(opts.plugins||{})}}});
+}
+
+function initAllCharts(){
+  // Mini Study
+  mkChart('mini-study-chart','bar',{labels:['M','T','W','T','F','S','S'],datasets:[{data:[2.5,1.5,3,0,4,2,1.5],backgroundColor:'rgba(0,229,192,0.7)',borderRadius:4,borderSkipped:false}]},{scales:{x:{...CD.scales.x,grid:{display:false}},y:{display:false}},plugins:{legend:{display:false}}});
+  // Mini Finance
+  mkChart('mini-finance-chart','bar',{labels:['Food','Trans','Edu','Ent','Health'],datasets:[{data:[3200,1800,2500,1200,960],backgroundColor:COLORS,borderRadius:4,borderSkipped:false}]},{scales:{x:{...CD.scales.x,grid:{display:false}},y:{display:false}},plugins:{legend:{display:false}}});
+  // Mini Mood
+  mkChart('mini-mood-chart','line',{labels:['M','T','W','T','F','S','S'],datasets:[{data:[7,6,8,5,9,8,7],borderColor:'var(--teal)',backgroundColor:'rgba(0,229,192,0.1)',tension:0.5,pointRadius:3,fill:true,pointBackgroundColor:'var(--teal)'}]},{scales:{x:{...CD.scales.x,grid:{display:false}},y:{...CD.scales.y,min:0,max:10}},plugins:{legend:{display:false}}});
+  // Study Pie
+  mkChart('study-pie-chart','doughnut',{labels:['Mathematics','Physics','Chemistry','Comp. Sci','English'],datasets:[{data:[28,18,12,32,10],backgroundColor:COLORS,borderWidth:0,hoverOffset:8}]},{cutout:'60%',plugins:{legend:{position:'bottom',labels:{color:'rgba(224,247,244,0.7)',padding:10}}}});
+  // Study Bar
+  mkChart('study-bar-chart','bar',{labels:['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],datasets:[{label:'Hours',data:[2.5,1.5,3,0,4,2,1.5],backgroundColor:'rgba(0,229,192,0.7)',borderRadius:5,borderSkipped:false}]},{scales:{...CD.scales,y:{...CD.scales.y,beginAtZero:true}}});
+  // Finance Pie
+  mkChart('fin-pie-chart','doughnut',{labels:['Food','Transport','Education','Entertainment','Health'],datasets:[{data:[3200,1800,2500,1200,960],backgroundColor:COLORS,borderWidth:0,hoverOffset:8}]},{cutout:'58%',plugins:{legend:{position:'bottom',labels:{color:'rgba(224,247,244,0.7)',padding:8}}}});
+  // Finance Bar
+  mkChart('fin-bar-chart','bar',{labels:['Week 1','Week 2','Week 3','Week 4'],datasets:[{label:'Income',data:[3500,2800,3200,3000],backgroundColor:'rgba(0,232,122,0.7)',borderRadius:5,borderSkipped:false},{label:'Expense',data:[2400,2100,2800,2360],backgroundColor:'rgba(255,159,28,0.7)',borderRadius:5,borderSkipped:false}]},{scales:{...CD.scales,y:{...CD.scales.y,beginAtZero:true}}});
+  // Mood Bar
+  mkChart('mood-bar-chart','bar',{labels:['Mon 😔','Tue 😐','Wed 😊','Thu 😰','Fri 🤩','Sat 😄','Sun 🙂'],datasets:[{label:'Mood Score',data:[6,5,8,4,9,8,7],backgroundColor:COLORS,borderRadius:6,borderSkipped:false}]},{scales:{...CD.scales,y:{...CD.scales.y,min:0,max:10}}});
+  // Analytics Trend
+  const days=Array.from({length:30},(_,i)=>`D${i+1}`);
+  const trend=Array.from({length:30},(_,i)=>Math.floor(40+i*8+Math.sin(i/2)*15+Math.random()*18));
+  mkChart('analytics-trend-chart','line',{labels:days,datasets:[{label:'Karma/Day',data:trend,borderColor:'var(--teal)',backgroundColor:'rgba(0,229,192,0.08)',tension:0.4,fill:true,pointRadius:2,pointHoverRadius:5,pointBackgroundColor:'var(--teal)'}]},{scales:{...CD.scales,y:{...CD.scales.y,beginAtZero:true}}});
+  // Analytics Breakdown
+  mkChart('analytics-breakdown-chart','doughnut',{labels:['Study','Meditation','Finance','Mood','Exercise'],datasets:[{data:[45,20,15,12,8],backgroundColor:COLORS,borderWidth:0,hoverOffset:6}]},{cutout:'55%',plugins:{legend:{position:'bottom',labels:{color:'rgba(224,247,244,0.7)',padding:7,font:{size:10}}}}});
+  // Analytics Radar
+  mkChart('analytics-peak-chart','radar',{labels:['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],datasets:[{label:'Karma Activity',data:[65,55,80,45,90,75,60],borderColor:'var(--teal)',backgroundColor:'rgba(0,229,192,0.14)',pointBackgroundColor:'var(--teal)'}]},{scales:{r:{grid:{color:'rgba(255,255,255,0.07)'},ticks:{display:false},pointLabels:{color:'rgba(224,247,244,0.7)',font:{family:'Rajdhani'}}}},plugins:{legend:{display:false}}});
+}
+
+// ════ AUTH ORB ANIMATION ════
+const authOrb=document.getElementById('auth-orb');
+let hue=160;
+setInterval(()=>{
+  hue=(hue+0.8)%360;
+  if(authOrb)authOrb.style.background=`radial-gradient(circle at 35% 35%,hsl(${hue},100%,70%),hsl(${hue+40},80%,45%) 50%,hsl(${hue+80},60%,25%) 100%)`;
+},40);
+
+// ════ STREAK CHECK ════
+(function(){
+  const today=new Date().toDateString();
+  const lastDay=localStorage.getItem('evo_lastday');
+  if(lastDay!==today){
+    localStorage.setItem('evo_lastday',today);
+    if(lastDay){const diff=(new Date(today)-new Date(lastDay))/86400000;S.streak=diff<=1?S.streak+1:1;}
+    S.todayKarma=0;localStorage.setItem('evo_streak',S.streak);localStorage.setItem('evo_today_karma',0);
+  }
+})();
+
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&window.innerWidth<=768)document.getElementById('sidebar').classList.remove('open');});
+</script>
+</body>
+</html>
